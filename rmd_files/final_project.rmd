@@ -1,0 +1,203 @@
+---
+title: ""
+author: "Lohit Marla"
+date: "2023-11-15"
+output: html_document
+---
+
+#PART-1
+
+```{r}
+# Load necessary libraries
+library(dplyr)
+
+# Set seed for reproducibility
+set.seed(45)
+
+# Number of samples
+num_samples <- 800
+
+# Create ID feature
+IDs <- sprintf("ID%03d", seq_len(num_samples))
+
+# Create Group feature
+Groups <- sample(c("A", "B", "C"), num_samples, replace = TRUE)
+
+# Create Feature_1
+mean_value <- 2500
+standard_deviation <- (2800 - 2200) / (2 * qnorm(0.8415))  # Ensures 66% within one standard deviation
+Feature_1 <- rnorm(800, mean = mean_value, sd = standard_deviation)
+
+# Create Feature_2
+Feature_2 <- rnorm(num_samples, mean = 400, sd = 15)
+
+# Create Feature_3 based on Group feature
+Feature_3 <- case_when(
+  Groups == "A" ~ 3 * Feature_1 - 5 * Feature_2,
+  Groups == "B" ~ 2 * Feature_1,
+  Groups == "C" ~ -Feature_1 + Feature_2
+)
+
+# Add random noise to Feature_3
+Feature_3 <- Feature_3 + rnorm(num_samples, mean = 0, sd = 12)
+
+
+```
+
+```{r}
+
+library(ggplot2)  # for plotting
+
+set.seed(45)
+
+1.1 
+# Create a data frame
+fake_data <- data.frame(ID = IDs, Group = Groups, Feature_1, Feature_2, Feature_3)
+
+1.2
+# a. Expected number of samples where Feature_1 is greater than 3000
+expected_prob <- 1 - pnorm(3000, mean = 2500, sd = 150)
+expected_samples <- expected_prob * num_samples
+
+# b. Actual number of samples where Feature_1 is greater than 3000
+actual_samples <- sum(fake_data$Feature_1 > 3000)
+
+# c. Grouping by Group field and computing mean and standard deviation of Feature_3
+grouped_stats <- fake_data %>%
+  group_by(Group) %>%
+  summarize(
+    mean_Feature_3 = mean(Feature_3),
+    sd_Feature_3 = sd(Feature_3)
+  )
+
+# Display results
+cat("a. Expected number of samples where Feature_1 is greater than 3000:", (expected_samples), "\n")
+cat("b. Actual number of samples where Feature_1 is greater than 3000:", actual_samples, "\n")
+cat("c. Grouped stats for Feature_3:\n")
+print(grouped_stats)
+
+
+```
+```{r}
+1.3
+# Scatterplot of Feature_3 vs Feature_1
+ggplot(fake_data, aes(x = Feature_1, y = Feature_3, color = Group)) +
+  geom_point() +
+  labs(title = "Scatterplot of Feature_3 vs Feature_1", x = "Feature_1", y = "Feature_3") +
+  theme_minimal()
+```
+
+```{r}
+
+1.4 # Save the dataset to a CSV file
+write.csv(fake_data, "fake_data.csv", row.names = FALSE)
+
+# Display the first few rows of the dataset
+head(fake_data)
+
+```
+#Part-2
+
+
+```{r}
+2.
+
+# Create 'expanded' directory if it doesn't exist
+dir.create("expanded", showWarnings = FALSE)
+
+# Function to extract code and extension
+extract_code_and_extension <- function(input_string) {
+  parts <- strsplit(input_string, "_")[[1]]
+  code <- parts[2]
+  extension <- parts[3]
+  return(paste0(code, ".", extension))
+}
+
+# Function to process codes file
+process_codes_file <- function(file_path) {
+  # Read codes from file
+  codes <- readLines(file_path)
+
+  # Process each code
+  for (code in codes) {
+    code <- trimws(code)
+    output_file_name <- extract_code_and_extension(code)
+    output_file_path <- file.path("expanded", output_file_name)
+
+    # Write the 5-digit number to the new file
+    writeLines(sub("_.*", "", code), con = output_file_path)
+  }
+}
+
+# Assuming codes.txt is in the same directory
+codes_file_path <- "codes.txt"
+
+# Process the codes file
+process_codes_file(codes_file_path)
+
+```
+
+#Part-3
+
+```{r}
+3.
+
+# Install and load the 'topChef' package
+library(topChef)
+library(dplyr)
+# Load the data
+data(chefdetails)
+data(judges)
+
+# Task 1: Exclude records from 'Masters' and 'Canada' seasons
+chefdetails_filtered <- chefdetails[!grepl("Masters|Canada", chefdetails$season, ignore.case = TRUE), ]
+judges_filtered <- judges[!grepl("Masters|Canada", judges$season, ignore.case = TRUE), ]
+
+# Task 2: Trim tables to include only relevant columns
+chefdetails_trimmed <- chefdetails_filtered[, c("season", "seasonNumber", "name", "placement", "gender")]
+judges_trimmed <- judges_filtered[, c("season", "seasonNumber", "episode", "challengeType", "guestJudge", "competedOnTC")]
+
+# Task 3: Create a table with information from 20 remaining different seasons
+seasons_table <- unique(chefdetails_trimmed[, c("season", "seasonNumber")])
+seasons_table <- seasons_table %>% arrange(seasonNumber)
+
+# Task 4: Answer the specified questions
+# a. Count male and female chef contestants
+count_gender <- table(chefdetails_trimmed$gender)
+
+# b. Count male and female winners
+count_winners_gender <- table(chefdetails_trimmed$gender[chefdetails_trimmed$placement == 1])
+
+# c. Count male and female top 3 finalists
+count_top3_gender <- table(chefdetails_trimmed$gender[chefdetails_trimmed$placement %in% c(1, 2, 3)])
+
+# d. Compare the number of times a female was placed in the top 3 with the number of times a female won
+count_top3_female <- count_top3_gender["Female"]
+count_winners_female <- count_winners_gender["Female"]
+comparison_result <- ifelse(count_top3_female == 0, "No Data", count_winners_female / count_top3_female)
+
+# Task 5: Create a table with first-place winners' name, season, and guest judge status
+first_place_winners <- chefdetails_trimmed[chefdetails_trimmed$placement == 1, ]
+guest_judge_table <- data.frame(
+  name = first_place_winners$name,
+  season = first_place_winners$season,
+  servedAsGuestJudge = ifelse(first_place_winners$name %in% judges_trimmed$guestJudge, "Yes", "No")
+) 
+
+# Task 6: Find contestants who were not first-place winners but served as a guest judge
+#contestants_guest_judges <- unique(judges_trimmed[chefdetails_trimmed$placement != 1, "guestJudge"]) #32
+
+unique_contestant_names <- chefdetails %>%
+     filter(placement != 1, !grepl("masters", tolower(trimws(season))), !grepl("canada", tolower(trimws(season)))) %>%
+     distinct(name) %>%
+     inner_join(distinct(judges, guestJudge), by = c("name" = "guestJudge"))
+
+# Display results
+count_gender
+count_winners_gender
+count_top3_gender
+comparison_result
+guest_judge_table
+unique_contestant_names
+
+```
