@@ -1,0 +1,97 @@
+---
+title: "fake_data_builder"
+author: "Lohit Marla"
+date: "2023-11-15"
+output: html_document
+---
+
+```{r}
+# Load necessary libraries
+library(dplyr)
+
+# Set seed for reproducibility
+set.seed(45)
+
+# Number of samples
+num_samples <- 800
+
+# Create ID feature
+IDs <- sprintf("ID%03d", seq_len(num_samples))
+
+# Create Group feature
+Groups <- sample(c("A", "B", "C"), num_samples, replace = TRUE)
+
+# Create Feature_1
+mean_value <- 2500
+standard_deviation <- (2800 - 2200) / (2 * qnorm(0.8415))  # Ensures 66% within one standard deviation
+Feature_1 <- rnorm(800, mean = mean_value, sd = standard_deviation)
+
+# Create Feature_2
+Feature_2 <- rnorm(num_samples, mean = 400, sd = 15)
+
+# Create Feature_3 based on Group feature
+Feature_3 <- case_when(
+  Groups == "A" ~ 3 * Feature_1 - 5 * Feature_2,
+  Groups == "B" ~ 2 * Feature_1,
+  Groups == "C" ~ -Feature_1 + Feature_2
+)
+
+# Add random noise to Feature_3
+Feature_3 <- Feature_3 + rnorm(num_samples, mean = 0, sd = 12)
+
+
+```
+
+```{r}
+
+library(ggplot2)  # for plotting
+
+set.seed(45)
+
+1.1 
+# Create a data frame
+fake_data <- data.frame(ID = IDs, Group = Groups, Feature_1, Feature_2, Feature_3)
+
+1.2
+# a. Expected number of samples where Feature_1 is greater than 3000
+expected_prob <- 1 - pnorm(3000, mean = 2500, sd = 150)
+expected_samples <- expected_prob * num_samples
+
+# b. Actual number of samples where Feature_1 is greater than 3000
+actual_samples <- sum(fake_data$Feature_1 > 3000)
+
+# c. Grouping by Group field and computing mean and standard deviation of Feature_3
+grouped_stats <- fake_data %>%
+  group_by(Group) %>%
+  summarize(
+    mean_Feature_3 = mean(Feature_3),
+    sd_Feature_3 = sd(Feature_3)
+  )
+
+# Display results
+cat("a. Expected number of samples where Feature_1 is greater than 3000:", (expected_samples), "\n")
+cat("b. Actual number of samples where Feature_1 is greater than 3000:", actual_samples, "\n")
+cat("c. Grouped stats for Feature_3:\n")
+print(grouped_stats)
+
+
+```
+```{r}
+1.3
+# Scatterplot of Feature_3 vs Feature_1
+ggplot(fake_data, aes(x = Feature_1, y = Feature_3, color = Group)) +
+  geom_point() +
+  labs(title = "Scatterplot of Feature_3 vs Feature_1", x = "Feature_1", y = "Feature_3") +
+  theme_minimal()
+```
+
+```{r}
+
+1.4 # Save the dataset to a CSV file
+write.csv(fake_data, "fake_data.csv", row.names = FALSE)
+
+# Display the first few rows of the dataset
+head(fake_data)
+
+```
+
