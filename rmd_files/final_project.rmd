@@ -96,8 +96,8 @@ write.csv(fake_data, "fake_data.csv", row.names = FALSE)
 head(fake_data)
 
 ```
-#Part-2
 
+#Part-2
 
 ```{r}
 2.
