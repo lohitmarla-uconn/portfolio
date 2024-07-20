@@ -793,9 +793,20 @@
   gtag('config', 'UA-162631146-1');
 
   function downloadPDFs() {
-    window.open('documents/LohitMarla_Data_Scientist.pdf',  '_blank');
-    window.open('documents/LohitMarla_Data_Engineer.pdf', '_blank');
- }
+    var link1 = document.createElement('a');
+    link1.href = 'documents/LohitMarla_Data_Scientist.pdf';
+    link1.download = 'LohitMarla_Data_Scientist.pdf';
+    document.body.appendChild(link1);
+    link1.click();
+    document.body.removeChild(link1);
+
+    var link2 = document.createElement('a');
+    link2.href = 'documents/LohitMarla_Data_Engineer.pdf';
+    link2.download = 'LohitMarla_Data_Engineer.pdf';
+    document.body.appendChild(link2);
+    link2.click();
+    document.body.removeChild(link2);
+}
 
 </script>
  
