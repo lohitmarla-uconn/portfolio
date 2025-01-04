@@ -10554,3 +10554,46 @@ textarea.form-control {
     font-weight: bold;
     color: #000000; /* Change the color to dark black */
 }
+
+.frame {
+    background-color: #f9f9f9;
+    padding: 15px;
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+.img-fluid {
+    object-fit: cover;
+    height: 200px; /* Adjust height if needed */
+}
+
+.frame {
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.img-fluid {
+    height: 200px; /* Ensures uniform height for all images */
+    object-fit: cover; /* Ensures the images are properly cropped and fit within their containers */
+}
+.frame {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.row {
+    margin: 0; /* Remove any inherited row margins */
+    padding: 0; /* Remove any inherited row padding */
+}
+
+.col-md-3 {
+    padding: 0; /* Ensure no padding around image containers */
+    margin: 0; /* Ensure no margins around image containers */
+}
+
+img {
+    display: block; /* Remove inline gaps caused by default display */
+    width: 100%; /* Ensure images fully occupy their containers */
+    height: auto; /* Maintain image aspect ratio */
+}
